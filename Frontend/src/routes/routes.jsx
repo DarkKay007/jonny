@@ -9,6 +9,7 @@ import DashboardListAspirantRegister from '../pages/registerAspirante';
 import DashboarEmpleados from '../pages/dashboardempleados';
 import NotificationsPage from "../pages/notificaciones";
 import CreateNotificationPage from '../pages/crearnotifi';
+import DashboardUsuarios from '../pages/dashboardUsuarios';
 
 const AppRoutes = () => {
   return (
@@ -21,6 +22,8 @@ const AppRoutes = () => {
       <Route path='/dashboard/list-aspirant' element={<DashboardListAspirant/>}/>
       <Route path='/dashboard/list-empleados' element={<DashboarEmpleados/>}/>
       <Route path='/dashboard/DashboardJefes' element={<DashboarEmpleados/>}/>
+      <Route path='/dashboard/DashboardUsuarios' element={<DashboardUsuarios/>}/>
+      
 
 
       <Route path='/register' element={<DashboardListAspirantRegister/>}/>

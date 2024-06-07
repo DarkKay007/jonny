@@ -29,6 +29,13 @@ const NavLinks = () => {
       >aspirntes
         <BsFillPersonLinesFill className="text-2xl" />
       </Link>
+      <Link
+        to={"/dashboard/DashboardUsuarios"}
+        className="text-white hover:text-yellow-300 transition-colors duration-300"
+      >Usuarios
+        <BsFillPersonLinesFill className="text-2xl" />
+      </Link>
+
 
       <Link
         to={"/notificaciones"}
