@@ -5,6 +5,8 @@ async function createAspirante(req, res) {
   const {
     nombre,
     identificacion,
+    isBossdepartamento,
+    departamento,
     edad,
     sexo,
     file,
@@ -16,6 +18,7 @@ async function createAspirante(req, res) {
     const newAspirante = {
       nombre,
       identificacion,
+      departamento,
       edad,
       sexo,
       rol: "aspirante", // Rol por defecto es "aspirante"
@@ -68,6 +71,7 @@ async function updateAspirante(req, res) {
     const updates = {
       nombre: req.body.nombre,
       identificacion: req.body.identificacion,
+      departamento: req.body.departamento,
       edad: req.body.edad,
       sexo: req.body.sexo,
       rol: req.body.rol,

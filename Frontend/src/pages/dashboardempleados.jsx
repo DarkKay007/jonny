@@ -3,6 +3,7 @@ import useAspirantesStore from "../store/useAspirantesStore";
 import { Modal, Button, Card, TextInput, Label } from "flowbite-react";
 import NavLinks from "../components/navLinks";
 import { CSVLink } from "react-csv";
+import { isAdmin, getUserDataFromToken } from "../utils/getUserFromToken.jsx"; // Importar las funciones necesarias
 
 function DashboarEmpleados() {
   const {
@@ -27,9 +28,13 @@ function DashboarEmpleados() {
     telefono: "",
     estado: "",
     date_create: "",
+    departamento: "", // Nuevo campo para el departamento
   });
   const [editMode, setEditMode] = useState(false);
   const [currentId, setCurrentId] = useState(null);
+
+  const userData = getUserDataFromToken();
+  const userIsAdmin = isAdmin();
 
   useEffect(() => {
     fetchAspirantes();
@@ -60,6 +65,7 @@ function DashboarEmpleados() {
       telefono: "",
       estado: "",
       date_create: "",
+      departamento: "", // Limpiar el campo departamento
     });
     setEditMode(false);
   };
@@ -91,20 +97,38 @@ function DashboarEmpleados() {
       </div>
     );
 
-  // Convertir los datos de los aspirantes en formato CSV
-  const csvData = aspirantes
-    .filter((aspirante) => aspirante.rol === "empleado")
-    .map((aspirante) => ({
-      Nombre: aspirante.nombre,
-      Identificación: aspirante.identificacion,
-      Edad: aspirante.edad,
-      Sexo: aspirante.sexo,
-      Rol: aspirante.rol,
-      Email: aspirante.email,
-      Teléfono: aspirante.telefono,
-      Estado: aspirante.estado,
-      Fecha_Creacion: aspirante.date_create,
-    }));
+  // Filtrar empleados según el rol del usuario
+  const empleados = userIsAdmin
+    ? aspirantes.filter((userData) => userData.rol === "empleado")
+    : aspirantes.filter(
+        (userData) =>
+          userData.rol === "empleado" &&
+          userData.departamento === userData.departamento
+      );
+
+  // Convertir los datos de los empleados en formato CSV
+  const csvData = empleados.map((aspirante) => ({
+    Nombre: aspirante.nombre,
+    Identificación: aspirante.identificacion,
+    Edad: aspirante.edad,
+    Sexo: aspirante.sexo,
+    Rol: aspirante.rol,
+    Email: aspirante.email,
+    Teléfono: aspirante.telefono,
+    Estado: aspirante.estado,
+    Fecha_Creacion: aspirante.date_create,
+    Departamento: aspirante.departamento, // Incluir el departamento en el CSV
+  }));
+
+  // Agrupar empleados por departamento
+  const empleadosPorDepartamento = empleados.reduce((acc, aspirante) => {
+    const dept = aspirante.departamento || "Sin departamento";
+    if (!acc[dept]) {
+      acc[dept] = [];
+    }
+    acc[dept].push(aspirante);
+    return acc;
+  }, {});
 
   return (
     <div className="container-dashboard">
@@ -131,45 +155,81 @@ function DashboarEmpleados() {
           </CSVLink>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mt-4">
-            {aspirantes
-              .filter((aspirante) => aspirante.rol === "empleado")
-              .map((aspirante) => (
-                <Card key={aspirante._id}>
-                  <h2 className="text-xl font-bold">{aspirante.nombre}</h2>
-                  <p>Identificación: {aspirante.identificacion}</p>
-                  <p>Edad: {aspirante.edad}</p>
-                  <p>Sexo: {aspirante.sexo}</p>
-                  <p>Rol: {aspirante.rol}</p>
-                  <p>Email: {aspirante.email}</p>
-                  <p>
-                    Links:{" "}
-                    <a
-                      href={aspirante.file}
-                      target="_blank"
-                      className="text-blue-400"
-                      rel="noopener noreferrer"
-                    >
-                      {aspirante.file}
-                    </a>
-                  </p>
-                  <p>Teléfono: {aspirante.telefono}</p>
-                  <p>Estado: {aspirante.estado}</p>
-                  <Button
-                    onClick={() => handleEdit(aspirante)}
-                    className="mr-2"
-                    color="warning"
+            {empleados.map((aspirante) => (
+              <Card key={aspirante._id}>
+                <h2 className="text-xl font-bold">{aspirante.nombre}</h2>
+                <p>Identificación: {aspirante.identificacion}</p>
+                <p>Edad: {aspirante.edad}</p>
+                <p>Sexo: {aspirante.sexo}</p>
+                <p>Rol: {aspirante.rol}</p>
+                <p>Email: {aspirante.email}</p>
+                <p>
+                  Links:{" "}
+                  <a
+                    href={aspirante.file}
+                    target="_blank"
+                    className="text-blue-400"
+                    rel="noopener noreferrer"
                   >
-                    Editar
-                  </Button>
-                  <Button
-                    color="failure"
-                    onClick={() => handleDelete(aspirante._id)}
-                  >
-                    Eliminar
-                  </Button>
-                </Card>
-              ))}
+                    {aspirante.file}
+                  </a>
+                </p>
+                <p>Teléfono: {aspirante.telefono}</p>
+                <p>Estado: {aspirante.estado}</p>
+                <p>Departamento: {aspirante.departamento}</p>
+                <Button
+                  onClick={() => handleEdit(aspirante)}
+                  className="mr-2"
+                  color="warning"
+                >
+                  Editar
+                </Button>
+                <Button
+                  color="failure"
+                  onClick={() => handleDelete(aspirante._id)}
+                >
+                  Eliminar
+                </Button>
+              </Card>
+            ))}
           </div>
+
+          {userIsAdmin && (
+            <div className="mt-8">
+              <h2 className="text-xl font-bold mb-4">Empleados por Departamento</h2>
+              {Object.keys(empleadosPorDepartamento).map((departamento) => (
+                <div key={departamento}>
+                  <h3 className="text-lg font-semibold mb-2">{departamento}</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                    {empleadosPorDepartamento[departamento].map((aspirante) => (
+                      <Card key={aspirante._id}>
+                        <h2 className="text-xl font-bold">{aspirante.nombre}</h2>
+                        <p>Identificación: {aspirante.identificacion}</p>
+                        <p>Edad: {aspirante.edad}</p>
+                        <p>Sexo: {aspirante.sexo}</p>
+                        <p>Rol: {aspirante.rol}</p>
+                        <p>Email: {aspirante.email}</p>
+                        <p>
+                          Links:{" "}
+                          <a
+                            href={aspirante.file}
+                            target="_blank"
+                            className="text-blue-400"
+                            rel="noopener noreferrer"
+                          >
+                            {aspirante.file}
+                          </a>
+                        </p>
+                        <p>Teléfono: {aspirante.telefono}</p>
+                        <p>Estado: {aspirante.estado}</p>
+                        <p>Departamento: {aspirante.departamento}</p>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       <Modal show={showModal} onClose={() => setShowModal(false)}>
@@ -277,6 +337,16 @@ function DashboarEmpleados() {
                 id="estado"
                 name="estado"
                 value={formData.estado}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="mb-2">
+              <Label htmlFor="departamento" value="Departamento" />
+              <TextInput
+                id="departamento"
+                name="departamento"
+                value={formData.departamento}
                 onChange={handleInputChange}
                 required
               />

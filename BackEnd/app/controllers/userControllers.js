@@ -6,6 +6,7 @@ async function createUser(req, res) {
     user,
     name,
     password,
+    departamento,
     email,
     rol,
   } = req.body;
@@ -63,6 +64,8 @@ async function updateUser(req, res) {
     const updates = {
       user: req.body.user,
       name: req.body.name,
+      departamento: req.body.departamento,
+
       password: req.body.password
         ? await bcrypt.hash(req.body.password, 10)
         : undefined,

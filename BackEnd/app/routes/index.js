@@ -14,7 +14,6 @@ router.use("/", empleadosRoutes)
 router.use("/", aspiranteRoutes)
 router.use('/', userRoutes);
 router.use('/auth', loginRoute);
-router.use('/', routesDepartamentos);
 router.use('/', notifiRoutes);
 
 
